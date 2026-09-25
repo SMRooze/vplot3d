@@ -1072,7 +1072,7 @@ def save_svg2fbf(file='unnamed.fbf.svg', path='.', width=100, height=100, atype=
     # Concatenate all SVG-file in directory
     if is_tool('svg2fbf'):
         run = subprocess.run(['svg2fbf', '-i'+path, '-f', 'tmp.fbf.svg', '-a', atype, '-s', str(fps), '--no-browser'],
-                             capture_output=True, text=True)
+                             capture_output=True, text=True, encoding='utf-8', errors='replace')
         if run.returncode > 0:
             sys.exit(run.stdout)
     else:
