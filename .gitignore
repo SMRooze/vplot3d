@@ -131,3 +131,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Rendered output of the thesis figure scripts (frames, videos, PDFs); regenerate with the scripts
+examples/kite_sailing_conditions/
+examples/pumping_cycle/
+examples/pumping_cycle_*/
+examples/wind_window/
+examples/wind_window_*/

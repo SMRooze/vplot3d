@@ -1,5 +1,9 @@
 # vplot3d - 3D vector diagrams in SVG format
 
+> [!NOTE]
+> This is a fork of [vplot3d](https://github.com/rschmehl/vplot3d) by Roland Schmehl. All credit for the library goes to the original author; please cite it as described in [CITATION.cff](CITATION.cff).
+> The fork adds the thesis figure scripts for a ship-towing kite (wind window and pumping cycle). See [examples/FIGURES.md](examples/FIGURES.md).
+
 The library extends the Python toolkit `mplot3d` to programmatically generate and animate 3D vector diagrams in SVG format with a minimum of drawing-related commands. The user can focus on the geometrical or physical problem instead of takling its visualization, delegating the bulk of drawing- and animation related code to the library. The following 3D objects can be instantiated:
 
 - Points,

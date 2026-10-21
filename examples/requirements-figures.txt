@@ -1,0 +1,4 @@
+# Extra packages for the thesis figure scripts (see FIGURES.md), on top of `pip install -e .`
+resvg-py          # SVG -> PNG rasterization
+imageio-ffmpeg    # bundled ffmpeg binary for the MP4 animations
+Pillow            # image checks in thesis_export.py
