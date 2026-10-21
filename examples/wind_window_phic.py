@@ -32,6 +32,7 @@ import numpy as np
 
 # Shared scene: parameters, camera, geometry, styling and helpers of wind_window.py
 # (everything before its output section; nothing is drawn or saved by this part)
+PHIREP_SWEEP = '--phirep' in sys.argv          # variant: phi_QSM,rep as azimuth of the projected point
 sys.argv = [sys.argv[0]]                       # default camera of wind_window.py
 _src = Path('wind_window.py').read_text(encoding='utf-8').split('# Static figures')[0]
 exec(compile(_src, 'wind_window.py', 'exec'))
@@ -46,7 +47,7 @@ print('> CAMERA_PHIC', CAMERA_PHIC)
 ###############################################################################
 # PARAMETERS
 ###############################################################################
-OUT_DIR    = Path('wind_window_phic')
+OUT_DIR    = Path('wind_window_phic_phirep' if PHIREP_SWEEP else 'wind_window_phic')
 PHIC_AMP   = np.deg2rad(40.0)       # sweep amplitude of phi_c (thesis bound: 60 deg)
 N_FRAMES   = 72                     # frames per loop
 FPS        = 12                     # 72 / 12 = 6 s per loop
@@ -54,6 +55,7 @@ STILLS_DEG = (-40, -20, 0, 20, 40)       # extra stills at these phi_c values
 GHOST_COLOR = '#A9CDEB'             # reference pattern at phi_c = 0
 LOBE_COLOR = '#555555'              # lobe centre markers phi_c -+ Delta_phi
 REP_ARC_R  = 0.72                   # radius of the ground arc for phi_QSM,rep (R units)
+PHIREP_SWEEP_LBL = (1.1, 0.9)       # --phirep: offset of the phi_QSM,rep label from its mid-arc point (font units; x mirrored with the sign of phi)
 
 def phi_qsm_rep(phi_c):
     '''Thesis Eq. 2.6, signed with the side of the pattern centre.'''
@@ -126,17 +128,34 @@ def draw_frame_dynamic(phi_c):
     if abs(np.degrees(phi_c)) > 2.5:
         objs.append(ArcMeasure(PO, EX, sph(phi_c, 0), vn=EZ, radius=R, linewidth=2.4,
                                zorder=Z_ARC, color=ANGLE_COLOR))
+    if abs(np.degrees(phi_c)) > 8:
+        objs.append(label(r'$\phi_c$', sph(phi_c, 0), (0.0, -1.0), color=ANGLE_COLOR))
+    if PHIREP_SWEEP:
+        # phi_QSM,rep: azimuth from e_x to the projection of the representative point onto the e_x-e_y plane
+        Pproj = np.array([Prep[0], Prep[1], 0.0])
+        rproj = np.linalg.norm(Pproj)                               # = R cos(beta_trac)
+        objs.append(Line(Pproj, Prep - Pproj, linewidth=1.6, color=RED, dashes=(4, 3), zorder=Z_ARC))
+        objs.append(Line(PO, Pproj, linewidth=1.6, color=RED, dashes=(4, 3), zorder=Z_ARC))
+        objs.append(Line(PO, R*EX, linewidth=LW_THIN, color='k', dashes=DASHES, zorder=Z_ARC))
+        objs.append(Point(Pproj, scale=1.1, shape='Point1M', zorder=Z_ARC+1,
+                          edgecolor=RED, facecolor=RED, bgcolor='w'))
+        objs.append(ArcMeasure(PO, EX, Pproj, vn=EZ, radius=rproj, linewidth=2.4, zorder=Z_ARC, color=RED))
+        objs.append(label(r'$\phi_{\mathrm{QSM,rep}}$', rproj*sph(phi_rep/2, 0),
+                          (np.sign(phi_rep)*PHIREP_SWEEP_LBL[0], PHIREP_SWEEP_LBL[1]),
+                          color=RED, fontsize=0.8*FONTSIZE))
+        return objs + readout(phi_c, phi_rep)
     if abs(np.degrees(phi_rep)) > 2.5:
         objs.append(ArcMeasure(PO, EX, sph(phi_rep, 0), vn=EZ, radius=REP_ARC_R, linewidth=2.4,
                                zorder=Z_ARC, color=RED))
-    if abs(np.degrees(phi_c)) > 8:
-        objs.append(label(r'$\phi_c$', sph(phi_c, 0), (0.0, -1.0), color=ANGLE_COLOR))
     if abs(np.degrees(phi_rep)) > 8:
         # mid-arc, pushed sideways away from the e_x label
         objs.append(label(r'$\phi_{\mathrm{QSM,rep}}$', REP_ARC_R*sph(phi_rep/2, 0), (0.9*np.sign(phi_rep), 0.9),
                           color=RED, fontsize=0.8*FONTSIZE))
+    return objs + readout(phi_c, phi_rep)
 
-    # numeric readout (screen fixed, top left)
+def readout(phi_c, phi_rep):
+    '''Numeric readout (screen fixed, top left and right).'''
+    objs = []
     dq = np.degrees
     objs.append(fig.text(0.03, 0.955, rf'$\phi_c = {dq(phi_c):+.1f}^\circ$',
                          color=ANGLE_COLOR, fontsize=0.8*FONTSIZE, ha='left', va='top'))
